@@ -1,0 +1,14 @@
+# 密钥与本地配置
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# 运行证据：按需挑选后用 git add -f 提交
+work/
+__pycache__/
+.pytest_cache/
+
+# 根目录 .gitignore 的 *secret* 会误伤扫描器脚本，这里放行
+!scripts/secret_scan.py

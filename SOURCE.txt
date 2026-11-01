@@ -1,0 +1,4 @@
+本仓库是 A 组（BuildChecker）E4–E7 交付用于 CI 的镜像。
+来源仓库: https://git.nju.edu.cn/devops4/devops.git
+来源提交: a2895191462e79670d44f9d7dc37e83feaeb2d01
+内容目录: E4-A/
