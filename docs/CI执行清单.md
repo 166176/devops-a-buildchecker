@@ -119,7 +119,22 @@ gh pr view "$pr_num" --json state,mergedAt,mergeCommit,url > work/ci-recovery/PR
 - 把 `work/ci-normal/`、`work/ci-protection/`、`work/ci-rejection/`、`work/ci-recovery/` 的结论填入 `docs/验收记录.csv` 的 C05、C06，并把状态改为 `PASS`。
 - 在 `docs/实验报告.md` 的“CI 与合并门禁”一节补上 run id、artifact 路径与合并提交。
 
-## 6. 常见问题
+## 6. 本次实际执行记录（2026-11-02）
+
+| 项目 | 实际值 |
+| --- | --- |
+| CI 仓库 | <https://github.com/166176/devops-a-buildchecker>（公开，根 = A 环境，`SOURCE.txt` 记录来源 SHA） |
+| 正常运行 | run `41352638727`，`success`，41 秒，16 passed，八项门禁 passed |
+| 分支保护 | `e7-a-quality-gate` / App 15368，`strict=true`，`enforce_admins=true`，审批 0 |
+| 失败运行 | run `41352778461`，`1 failed / 16 passed`（`assert 0 == 1`） |
+| 合并拦截 | PR #1 `OPEN/BLOCKED`，`gh pr merge` 退出码 1，日志含 `base branch policy prohibits the merge` |
+| 恢复运行 | run `41352902075`，`success`，17 passed |
+| 最终合并 | PR #1 `MERGED`，`mergedAt=2026-11-01T21:37:54Z`，`mergeCommit=79704a773c7007c7ae2b99fbff90e893cf521a8c` |
+| 证据位置 | `E4-A/work/ci-normal/`、`ci-protection/`、`ci-rejection/`、`ci-recovery/` |
+
+注：`gh` 通过设备码登录账号 `166176`；仓库公开以便免费账号启用分支保护。
+
+## 7. 常见问题
 
 | 现象 | 处理 |
 | --- | --- |
