@@ -1,0 +1,14 @@
+# 仓库内脚本与构建文件统一 LF：容器里的 bash / make 不接受 CRLF
+* text=auto eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.csv text eol=lf
+*.c text eol=lf
+*.h text eol=lf
+Makefile text eol=lf
+*.lock text eol=lf
+*.in text eol=lf
