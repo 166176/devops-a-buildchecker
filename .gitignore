@@ -12,3 +12,5 @@ __pycache__/
 
 # 根目录 .gitignore 的 *secret* 会误伤扫描器脚本，这里放行
 !scripts/secret_scan.py
+
+data/
