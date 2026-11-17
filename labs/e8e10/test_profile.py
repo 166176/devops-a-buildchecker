@@ -1,6 +1,6 @@
-import json, tempfile, unittest
+import json, os, tempfile, time, unittest
 from pathlib import Path
-from lab import fixture,scan,patch,commit
+from lab import fixture,scan,patch,commit,validate,edit_header_for_rebuild
 
 class ProfileTests(unittest.TestCase):
     def setUp(self):
@@ -38,6 +38,17 @@ class ProfileTests(unittest.TestCase):
     def test_unsupported_configuration_rejected(self):
         (self.p/'Makefile').write_text((self.p/'Makefile').read_text().replace('-O0','-include unknown.h'))
         with self.assertRaisesRegex(ValueError,'UNSUPPORTED_FLAGS'):scan(self.p)
+
+    def test_header_edit_wins_after_backward_clock_step(self):
+        sandbox=Path(self.tmp.name)/'sandbox';fixture(sandbox)
+        future=time.time()+3600
+        for item in sandbox.iterdir():
+            if item.is_file(): os.utime(item,(future,future))
+        edit_header_for_rebuild(sandbox)
+        newest=max(item.stat().st_mtime for item in sandbox.iterdir() if item.is_file())
+        self.assertEqual((sandbox/'config.h').stat().st_mtime,newest)
+        self.assertGreater(newest,future)
+        self.assertEqual((sandbox/'config.h').read_text(),'#define VALUE 2\n')
 
 
 class StudentE8A(unittest.TestCase):
