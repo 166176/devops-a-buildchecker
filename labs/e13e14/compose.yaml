@@ -1,18 +1,19 @@
 # Four separate runtime processes. Set E14_ROOT and E14_IMAGE before use.
+x-env: &common-env
+  PYTHONPATH: /course/labs/e8e10:/course/labs/e11e12/vendor:/app
+  PYTHONDONTWRITEBYTECODE: "1"
+  # The roles run as root over a host-owned work tree, so git would otherwise
+  # refuse the repositories orchestrate.py prepares.
+  GIT_CONFIG_COUNT: "1"
+  GIT_CONFIG_KEY_0: safe.directory
+  GIT_CONFIG_VALUE_0: "*"
+
 x-common: &common
   image: ${E14_IMAGE:?set E14_IMAGE}
   pull_policy: never
   restart: unless-stopped
   user: "0:0"
   working_dir: /course
-  environment:
-    PYTHONPATH: /course/labs/e8e10:/course/labs/e11e12/vendor:/app
-    PYTHONDONTWRITEBYTECODE: "1"
-    # The roles run as root over a host-owned work tree, so git would
-    # otherwise refuse the repositories orchestrate.py prepares.
-    GIT_CONFIG_COUNT: "1"
-    GIT_CONFIG_KEY_0: safe.directory
-    GIT_CONFIG_VALUE_0: "*"
   volumes:
     - ${E14_ROOT:?set E14_ROOT}:/course
   cpus: 1.0
@@ -30,8 +31,8 @@ services:
   buildchecker:
     <<: *common
     environment:
+      <<: *common-env
       E14_ROLE: buildchecker
-      PYTHONDONTWRITEBYTECODE: "1"
     command: ["python3", "labs/e13e14/service.py"]
     ports: ["127.0.0.1:18081:8080"]
     cap_add: ["SYS_PTRACE"]
@@ -39,16 +40,16 @@ services:
   echecker:
     <<: *common
     environment:
+      <<: *common-env
       E14_ROLE: echecker
-      PYTHONDONTWRITEBYTECODE: "1"
     command: ["python3", "labs/e13e14/service.py"]
     ports: ["127.0.0.1:18082:8080"]
 
   draft:
     <<: *common
     environment:
+      <<: *common-env
       E14_ROLE: draft
-      PYTHONDONTWRITEBYTECODE: "1"
     command: ["python3", "labs/e13e14/service.py"]
     ports: ["127.0.0.1:18083:8080"]
     volumes:
@@ -58,7 +59,7 @@ services:
   mdfixer:
     <<: *common
     environment:
+      <<: *common-env
       E14_ROLE: mdfixer
-      PYTHONDONTWRITEBYTECODE: "1"
     command: ["python3", "labs/e13e14/service.py"]
     ports: ["127.0.0.1:18084:8080"]
