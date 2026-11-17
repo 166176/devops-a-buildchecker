@@ -9,3 +9,6 @@
 work/
 __pycache__/
 .pytest_cache/
+
+# E11/E12 input projects are archived with the experiment evidence.
+/data/
