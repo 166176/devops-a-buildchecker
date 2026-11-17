@@ -41,6 +41,13 @@ def load_artifact(path, expected_sha256):
         raise Failure('ARTIFACT_HASH_MISMATCH','Artifact content changed during transfer')
     return json.loads(data)
 
+def load_fixed_report(path, expected_sha256):
+    # E13: the handoff envelope may be checked against the hash its producer published.
+    data=path.read_bytes()
+    if expected_sha256 and hashlib.sha256(data).hexdigest()!=expected_sha256:
+        raise Failure('ARTIFACT_HASH_MISMATCH','Fixed report content changed during transfer')
+    return json.loads(data)
+
 def command(argv, cwd, log):
     log.parent.mkdir(parents=True, exist_ok=True)
     p = subprocess.run(argv, cwd=cwd, capture_output=True, text=True, timeout=120)
@@ -122,11 +129,13 @@ def execute(request, out, job_id=None):
         else:
             # E11-B still consumes a fixed MD input, separately from A's live output.
             fixed=Path(request['fixed_report'])
-            envelope=json.loads(fixed.read_text(encoding='utf-8'))
+            envelope=load_fixed_report(fixed, request.get('fixed_report_sha256'))
             check_envelope(envelope,target_sha,'fixed-md')
             current=envelope['data']
             if current.get('commit') != target_sha:
                 raise Failure('STALE_REPORT','Fixed report data commit mismatch')
+            if envelope.get('source_report'):
+                save(out/'handoff-source.json',envelope['source_report'])
             save(out/'fixed-md-input.json',envelope)
             md_envelope=stage('fixed-md',target_sha,current,[out/'fixed-md-input.json'])
         if mode in ('e11-b','e12'):

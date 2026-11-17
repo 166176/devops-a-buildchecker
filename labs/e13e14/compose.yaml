@@ -1,0 +1,65 @@
+# Four separate runtime processes. Set E14_ROOT and E14_IMAGE before use.
+x-env: &common-env
+  PYTHONPATH: /course/labs/e8e10:/course/labs/e11e12/vendor:/app
+  PYTHONDONTWRITEBYTECODE: "1"
+  # The roles run as root over a host-owned work tree, so git would otherwise
+  # refuse the repositories orchestrate.py prepares.
+  GIT_CONFIG_COUNT: "1"
+  GIT_CONFIG_KEY_0: safe.directory
+  GIT_CONFIG_VALUE_0: "*"
+
+x-common: &common
+  image: ${E14_IMAGE:?set E14_IMAGE}
+  pull_policy: never
+  restart: unless-stopped
+  user: "0:0"
+  working_dir: /course
+  volumes:
+    - ${E14_ROOT:?set E14_ROOT}:/course
+  cpus: 1.0
+  mem_limit: 768m
+  pids_limit: 128
+  security_opt:
+    - no-new-privileges:true
+  healthcheck:
+    test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2)"]
+    interval: 5s
+    timeout: 3s
+    retries: 6
+
+services:
+  buildchecker:
+    <<: *common
+    environment:
+      <<: *common-env
+      E14_ROLE: buildchecker
+    command: ["python3", "labs/e13e14/service.py"]
+    ports: ["127.0.0.1:18081:8080"]
+    cap_add: ["SYS_PTRACE"]
+
+  echecker:
+    <<: *common
+    environment:
+      <<: *common-env
+      E14_ROLE: echecker
+    command: ["python3", "labs/e13e14/service.py"]
+    ports: ["127.0.0.1:18082:8080"]
+
+  draft:
+    <<: *common
+    environment:
+      <<: *common-env
+      E14_ROLE: draft
+    command: ["python3", "labs/e13e14/service.py"]
+    ports: ["127.0.0.1:18083:8080"]
+    volumes:
+      - ${E14_ROOT:?set E14_ROOT}:/course
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  mdfixer:
+    <<: *common
+    environment:
+      <<: *common-env
+      E14_ROLE: mdfixer
+    command: ["python3", "labs/e13e14/service.py"]
+    ports: ["127.0.0.1:18084:8080"]
