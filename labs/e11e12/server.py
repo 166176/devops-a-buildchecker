@@ -24,7 +24,7 @@ class Store:
             self.keys[state['idempotency_key']]=(state['request_hash'],state['job_id'])
     def submit(self, request, key):
         if not isinstance(request,dict):raise ValueError('input must be a JSON object')
-        if not isinstance(key,str) or not key or len(key)>128:raise ValueError('idempotency_key required, max 128 characters')
+        if not isinstance(key,str) or not key.strip() or len(key)>128:raise ValueError('idempotency_key required, max 128 characters')
         if request.get('mode') not in ('e11-a','e11-b','e12'):raise ValueError('Unknown mode')
         for field in ('repo','candidate','fixed_report'):
             if field in request:
