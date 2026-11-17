@@ -8,6 +8,11 @@ x-common: &common
   environment:
     PYTHONPATH: /course/labs/e8e10:/course/labs/e11e12/vendor:/app
     PYTHONDONTWRITEBYTECODE: "1"
+    # The roles run as root over a host-owned work tree, so git would
+    # otherwise refuse the repositories orchestrate.py prepares.
+    GIT_CONFIG_COUNT: "1"
+    GIT_CONFIG_KEY_0: safe.directory
+    GIT_CONFIG_VALUE_0: "*"
   volumes:
     - ${E14_ROOT:?set E14_ROOT}:/course
   cpus: 1.0
