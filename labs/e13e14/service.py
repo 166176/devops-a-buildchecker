@@ -15,6 +15,9 @@ from buildchecker.fullcheck import full_check
 
 ROOT = Path('/course').resolve()
 ROLE = os.environ['E14_ROLE']
+os.environ.setdefault('GIT_CONFIG_COUNT', '1')
+os.environ.setdefault('GIT_CONFIG_KEY_0', 'safe.directory')
+os.environ.setdefault('GIT_CONFIG_VALUE_0', '*')
 
 
 def local(value, area='work'):

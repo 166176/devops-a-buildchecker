@@ -9,7 +9,7 @@ import uuid
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path[:0] = [str(ROOT / 'labs/e8e10'), str(ROOT / 'labs/e11e12/vendor'), '/app']
+sys.path[:0] = [str(ROOT / 'labs/e8e10'), str(ROOT / 'labs/e11e12/vendor'), str(ROOT / 'labs/e11e12/environment/services/buildchecker'), '/app']
 from lab import scan, patch, validate
 
 class Failure(ValueError):
@@ -125,7 +125,8 @@ def execute(request, out, job_id=None):
         else:
             # E11-B still consumes a fixed MD input, separately from A's live output.
             fixed=Path(request['fixed_report'])
-            envelope=json.loads(fixed.read_text(encoding='utf-8'))
+            expected_sha=request.get('fixed_report_sha256')
+            envelope=load_artifact(fixed,expected_sha) if expected_sha is not None else json.loads(fixed.read_text(encoding='utf-8'))
             check_envelope(envelope,target_sha,'fixed-md')
             current=envelope['data']
             if current.get('commit') != target_sha:

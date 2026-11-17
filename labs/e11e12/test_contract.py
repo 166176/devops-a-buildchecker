@@ -72,4 +72,37 @@ class Contracts(unittest.TestCase):
             self.assertIn('extra.h', report['actual']['main.o'])
             self.assertIn(['MISSING', 'main.o', 'extra.h'], report['added'])
 
+    def test_e11b_rejects_tampered_fixed_report_sha256(self):
+        with tempfile.TemporaryDirectory() as d:
+            from lab import commit, fixture, run, scan
+            root = Path(d)
+            project = root / 'project'
+            fixture(project)
+            base = run(['git', 'rev-parse', 'HEAD'], project).strip()
+            (project / 'main.c').write_text('#include "extra.h"\n' + (project / 'main.c').read_text())
+            target = commit(project, 'Add include')
+            report_path = root / 'fixed-md.json'
+            envelope = {
+                'schema_version': 'e11e12-1', 'kind': 'fixed-md',
+                'status': 'SUCCEEDED', 'commit': target, 'data': scan(project),
+            }
+            report_path.write_text(json.dumps(envelope) + '\n')
+            orig_sha = pipeline.hashlib.sha256(report_path.read_bytes()).hexdigest()
+            report_path.write_bytes(report_path.read_bytes() + b'\n')
+            cand = root / 'candidate.Dockerfile'
+            cand.write_text('FROM scratch\n')
+            request = {
+                'mode': 'e11-b', 'repo': str(project), 'base': base, 'target': target,
+                'candidate': str(cand), 'fixed_report': str(report_path),
+                'fixed_report_sha256': orig_sha,
+            }
+            def fake_draft(_target, _cand, draft_out, *_a, **_kw):
+                draft_out.mkdir(parents=True, exist_ok=True)
+                (draft_out / 'result.json').write_text('{"status":"SUCCEEDED"}\n')
+                return {'status': 'SUCCEEDED'}
+            with patch('draft.autobuild.auto_build', side_effect=fake_draft):
+                result = pipeline.execute(request, root / 'out')
+            self.assertEqual(result['status'], 'FAILED')
+            self.assertEqual(result['error']['code'], 'ARTIFACT_HASH_MISMATCH')
+
 if __name__=='__main__':unittest.main()
