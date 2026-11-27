@@ -1,5 +1,5 @@
 """E8-E10 teaching profile: explicit C/Make rules, GCC dependency observation."""
-import argparse, csv, difflib, json, re, shutil, subprocess, time
+import argparse, csv, difflib, json, os, re, shutil, subprocess, time
 from pathlib import Path
 
 def save(p, data):
@@ -106,6 +106,12 @@ def patch(p,report):
     diff=''.join(difflib.unified_diff(original.splitlines(True),changed.splitlines(True),fromfile='a/Makefile',tofile='b/Makefile'))
     return diff,edits
 
+def edit_header_for_rebuild(sandbox):
+    """Change the header and make sure make sees it even after a clock step."""
+    (sandbox/'config.h').write_text('#define VALUE 2\n')
+    newest=max(x.stat().st_mtime for x in sandbox.iterdir() if x.is_file())
+    os.utime(sandbox/'config.h',(newest+1,newest+1))
+
 def validate(p, patchfile, evidence, fail_test=False):
     evidence.mkdir(parents=True); before=(p/'Makefile').read_bytes()
     sandbox=evidence/'sandbox'; shutil.copytree(p,sandbox,ignore=shutil.ignore_patterns('.git','*.o','app'))
@@ -120,7 +126,7 @@ def validate(p, patchfile, evidence, fail_test=False):
         log=run(['make','clean'],sandbox)+run(['make','app'],sandbox);(evidence/'build.log').write_text(log);checks['build']=True
         output=run(['./app'],sandbox).strip(); checks['test']=output==('99' if fail_test else '1')
         # Real header-change build checks the originally broken incremental behavior.
-        time.sleep(1.05); (sandbox/'config.h').write_text('#define VALUE 2\n')
+        edit_header_for_rebuild(sandbox)
         (evidence/'incremental.log').write_text(run(['make','app'],sandbox))
         checks['header_change']=run(['./app'],sandbox).strip()=='2'
         recheck=scan(sandbox); save(evidence/'recheck.json',recheck)
