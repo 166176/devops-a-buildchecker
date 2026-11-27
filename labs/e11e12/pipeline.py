@@ -131,6 +131,8 @@ def execute(request, out, job_id=None):
             current=envelope['data']
             if current.get('commit') != target_sha:
                 raise Failure('STALE_REPORT','Fixed report data commit mismatch')
+            if envelope.get('source_report'):
+                save(out/'handoff-source.json',envelope['source_report'])
             save(out/'fixed-md-input.json',envelope)
             md_envelope=stage('fixed-md',target_sha,current,[out/'fixed-md-input.json'])
         if mode in ('e11-b','e12'):
