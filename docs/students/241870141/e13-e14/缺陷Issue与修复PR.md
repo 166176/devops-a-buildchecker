@@ -63,7 +63,19 @@ def edit_header_for_rebuild(sandbox):
 
 | 工作流 | 分支 | 结论 |
 | --- | --- | --- |
-| E7 A quality gate | `e13e14-rebase` | 通过 |
-| E8-E10 teaching validation | `e13e14-rebase` | 通过 |
-| E11-E12 integration | `e13e14-rebase` | 通过 |
-| E13-E14 integration gate | `e13e14-rebase` | 通过 |
+| E7 A quality gate | `e13e14-rebase` | 通过（`45976029089`） |
+| E8-E10 teaching validation | `e13e14-rebase` | 通过（`45976029090`） |
+| E11-E12 integration | `e13e14-rebase` | 通过（`45976029304`） |
+| E13-E14 integration gate | `e13e14-rebase` | 通过（`45976029242`） |
+
+切换 `main` 后（`main` @ `e3751aebca101147d5749b4ba05e52afa35a9ec5`）重新运行并全部通过：
+
+| 工作流 | 运行 | 结论 |
+| --- | --- | --- |
+| E7 A quality gate | `45976932332` | 通过 |
+| E8-E10 teaching validation | `45976932298` | 通过 |
+| E11-E12 integration | `45976932599` | 通过 |
+| E13-E14 integration gate | `45976932271` | 通过；四容器 E2E `job-edfddd5e96264b41bc253428318758d4` / `trace-941d0abef3434056bc6c913a215dfc59` |
+
+分支保护在强制切换期间临时放宽（`enforce_admins=false`、`allow_force_pushes=true`），切换并确认 CI 通过后已恢复为
+`enforce_admins=true`、`allow_force_pushes=false`、必需检查 `e7-a-quality-gate`（`strict`、需 PR、需会话解决）。
