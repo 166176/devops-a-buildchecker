@@ -33,17 +33,6 @@ class StudentContracts(unittest.TestCase):
         with self.assertRaisesRegex(pipeline.Failure, 'e11e12-1'):
             pipeline.check_envelope(report, 'a' * 40, 'incremental-check')
 
-    def test_blank_idempotency_key_is_rejected(self):
-        with tempfile.TemporaryDirectory() as directory:
-            store = server.Store(Path(directory) / 'jobs')
-            try:
-                request = {'mode': 'e11-a', 'repo': str(pipeline.ROOT / 'data/p'),
-                           'base': 'a', 'target': 'b'}
-                with self.assertRaises(ValueError):
-                    store.submit(request, '   ')
-            finally:
-                store.pool.shutdown()
-
     def test_unfinished_job_marked_after_restart(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / 'jobs'

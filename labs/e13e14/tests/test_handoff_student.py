@@ -68,7 +68,7 @@ class HandoffHashTests(unittest.TestCase):
     def test_accepted_hash_matches_published_bytes(self):
         path = self.handoff()
         expected = hashlib.sha256(path.read_bytes()).hexdigest()
-        envelope = pipeline.load_fixed_report(path, expected)
+        envelope = pipeline.load_artifact(path, expected)
         self.assertEqual(envelope["source_report"]["uri"],
                          f"artifact://{self.job}/incremental-check.json")
         self.assertEqual(envelope["source_report"]["sha256"],
@@ -79,13 +79,14 @@ class HandoffHashTests(unittest.TestCase):
         expected = hashlib.sha256(path.read_bytes()).hexdigest()
         path.write_text('{"findings": ["injected"]}\n', encoding="utf-8")
         with self.assertRaises(pipeline.Failure) as ctx:
-            pipeline.load_fixed_report(path, expected)
+            pipeline.load_artifact(path, expected)
         self.assertEqual(ctx.exception.code, "ARTIFACT_HASH_MISMATCH")
 
-    def test_missing_hash_keeps_previous_behaviour(self):
+    def test_empty_hash_is_not_treated_as_missing(self):
         path = self.handoff()
-        self.assertEqual(pipeline.load_fixed_report(path, None)["commit"], self.sha)
-        self.assertEqual(pipeline.load_fixed_report(path, "")["commit"], self.sha)
+        with self.assertRaises(pipeline.Failure) as ctx:
+            pipeline.load_artifact(path, "")
+        self.assertEqual(ctx.exception.code, "ARTIFACT_HASH_MISMATCH")
 
 
 if __name__ == "__main__":
